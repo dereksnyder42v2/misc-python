@@ -8,47 +8,51 @@ $ ./noip2 -c CONFIG -i <my new ip>
 ...which is, well not very dynamic is it
 
 so this script hackishly obtains current IP and runs a manual update!
-then a cron job executes every 5 minutes:
+then a cron job executes every 15 minutes:
 	$ crontab -e #this might need to be sudo if noip requires su permissions.  don't remember
-	then add (*/X * * * *     /path/to/script.sh) to file
-more notes about cron jobs: if you want this script to keep a log of updates, 
-	you should '$ chown <user> FADlog.txt' so it doesn't belong to root
-(oh, and it's called FADlog.txt because the original script was named fuc-a-duc.py... LOL)
+	then add (*/15 * * * *     /path/to/script.sh) to file
 
 Dependencies:
-	- curl
 	- noip2
 
 For a walkthru on using noip tool, refer to https://www.togaware.com/linux/survivor/No_IP_Manual.html 
 
 Derek Snyder
 2/7/2018
+last revision:
+2/17/2018 - replaced hackish dependencies on curl with httplib request, less platform dependent now
 '''
 
 import os
 import datetime
+import httplib
 
 os.chdir('/home/derek/Desktop/scripts') # replace w /path/to/script
 
-dateStamp = '%d-%d %d:%d %d\n' % (datetime.date.today().month, datetime.date.today().day, datetime.datetime.now().time().hour, datetime.datetime.now().time().minute, datetime.date.today().year)
-log_file=open('FADlog.txt','w') 
-log_file.write(dateStamp)
-log_file.close()
+# get new global IPv4 address
+conn=httplib.HTTPConnection('icanhazip.com')
+conn.request('GET', '/')
+res=conn.getresponse()
 
-os.system('rm myIp.txt') # delete existing record: only want recent
-#it's hard to communicate b/w python and a shell. I use text files...
-cmdStr = 'curl http://icanhazip.com/ 2>/dev/null > myIp.txt' 
-os.system(cmdStr)
+if res.status == 200: # don't want to update if attempt to get IP failed
+	myip=res.read().rstrip('\r\n')
+	os.chdir('/home/derek/Desktop/noip-2.1.9-1') # replace w /path/to/noip-binary
+	cmdStr = './noip2 -c CONFIG -i %s' % (myip)
+	os.system(cmdStr)
 
-ip_file = open('myIp.txt', 'r')
-for line in ip_file:
-	myip = line
-	myip = myip.rstrip('\r\n')
-	break #it's the first line. avoid that newline business
+os.chdir('/home/derek/Desktop/scripts') # replace w /path/to/noip-updater-script
+if not os.path.isfile('./noip_log.txt'):
+	logFile=file('noip_log.txt', 'w') # opening a non-existent file in append mode doesn't do anything
+else:
+	logFile=file('noip_log.txt', 'a')
 
-ip_file.close()
-#print myip
+dateStamp = '%d-%d %d:%d %d,' % (
+	datetime.date.today().month, 
+	datetime.date.today().day, 
+	datetime.datetime.now().time().hour, 
+	datetime.datetime.now().time().minute, 
+	datetime.date.today().year
+	)
 
-os.chdir('/home/derek/Desktop/noip-2.1.9-1') # replace w /path/to/noip-binary
-cmdStr = './noip2 -c CONFIG -i %s' % (myip)
-os.system(cmdStr)
+logFile.write(dateStamp + str(res.status) + ',\n')
+logFile.close()
