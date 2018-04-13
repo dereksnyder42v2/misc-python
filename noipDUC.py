@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python2.7
 
 '''
 When I installed the NoIP dynamic update client (DUC), (Ubuntu 16 LTS)
@@ -18,41 +18,46 @@ Dependencies:
 For a walkthru on using noip tool, refer to https://www.togaware.com/linux/survivor/No_IP_Manual.html 
 
 Derek Snyder
-2/7/2018
-last revision:
-2/17/2018 - replaced hackish dependencies on curl with httplib request, less platform dependent now
+ 2/ 7/2018
+ 2/17/2018 - replaced hackish dependencies on curl with httplib request, less platform dependent now
+ 4/13/2018 - refactor
 '''
 
-import os
 import datetime
 import httplib
+import os, subprocess
 
-os.chdir('/home/derek/Desktop/scripts') # replace w /path/to/script
+#/usr/home/freebsd/duc/misc-python
+_NOIP_BIN_PATH_ROOT = "/usr/home/freebsd/noip-2.1.9-1/"     # TODO
+_LOGFILE_PATH = "/usr/home/freebsd/duc/noip-update-log.txt"      # TODO
 
-# get new global IPv4 address
-conn=httplib.HTTPConnection('icanhazip.com')
-conn.request('GET', '/')
-res=conn.getresponse()
-
-if res.status == 200: # don't want to update if attempt to get IP failed
-	myip=res.read().rstrip('\r\n')
-	os.chdir('/home/derek/Desktop/noip-2.1.9-1') # replace w /path/to/noip-binary
-	cmdStr = './noip2 -c CONFIG -i %s' % (myip)
-	os.system(cmdStr)
-
-os.chdir('/home/derek/Desktop/scripts') # replace w /path/to/noip-updater-script
-if not os.path.isfile('./noip_log.txt'):
-	logFile=file('noip_log.txt', 'w') # opening a non-existent file in append mode doesn't do anything
-else:
-	logFile=file('noip_log.txt', 'a')
-
-dateStamp = '%d-%d %d:%d %d,' % (
-	datetime.date.today().month, 
+def date_stamp():
+    ds = "%d-%d-%d %d:%d" % (
+	datetime.date.today().year,
+        datetime.date.today().month, 
 	datetime.date.today().day, 
 	datetime.datetime.now().time().hour, 
 	datetime.datetime.now().time().minute, 
-	datetime.date.today().year
-	)
+    )
+    return ds
 
-logFile.write(dateStamp + str(res.status) + ',\n')
-logFile.close()
+if __name__ == "__main__":
+
+    # get new global IPv4 address
+    conn = httplib.HTTPConnection("icanhazip.com")
+    conn.request("GET", "/")
+    res = conn.getresponse()
+
+    if res.status == 200: # don't want to update if attempt to get IP failed
+        myip = res.read().rstrip('\r\n')
+        os.chdir( _NOIP_BIN_PATH_ROOT) # replace w /path/to/noip-binary
+        cmd_str = "./noip2 -c CONFIG -i %s" % (myip)
+        subprocess.check_output(cmd_str.split()) # TODO verify output
+ 
+    if not os.path.isfile( _LOGFILE_PATH):
+        logFile = file( _LOGFILE_PATH, "w") # opening a non-existent file in append mode doesn't do anything
+    else:
+        logFile = file( _LOGFILE_PATH, "a")
+
+    logFile.write(date_stamp() + "," + str(res.status) + ",\n")
+    logFile.close()
