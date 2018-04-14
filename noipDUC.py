@@ -32,12 +32,12 @@ _NOIP_BIN_PATH_ROOT = "/usr/home/freebsd/noip-2.1.9-1/"     # TODO
 _LOGFILE_PATH = "/usr/home/freebsd/duc/noip-update-log.txt"      # TODO
 
 def date_stamp():
-    ds = "%d-%d-%d %d:%d" % (
-	datetime.date.today().year,
-        datetime.date.today().month, 
-	datetime.date.today().day, 
-	datetime.datetime.now().time().hour, 
-	datetime.datetime.now().time().minute, 
+    ds = "%s-%s-%s %s:%s" % (
+	str(datetime.date.today().year).zfill(4),
+        str(datetime.date.today().month).zfill(2), 
+	str(datetime.date.today().day).zfill(2), 
+	str(datetime.datetime.now().time().hour).zfill(2), 
+	str(datetime.datetime.now().time().minute).zfill(2), 
     )
     return ds
 
