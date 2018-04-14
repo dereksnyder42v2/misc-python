@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.7
+#!/usr/bin/python2.7
 
 '''
 When I installed the NoIP dynamic update client (DUC), (Ubuntu 16 LTS)
@@ -21,15 +21,15 @@ Derek Snyder
  2/ 7/2018
  2/17/2018 - replaced hackish dependencies on curl with httplib request, less platform dependent now
  4/13/2018 - refactor
+ 4/14/2018 - refactor and modify for use on Ubuntu
 '''
 
 import datetime
 import httplib
 import os, subprocess
 
-#/usr/home/freebsd/duc/misc-python
-_NOIP_BIN_PATH_ROOT = "/usr/home/freebsd/noip-2.1.9-1/"     # TODO
-_LOGFILE_PATH = "/usr/home/freebsd/duc/noip-update-log.txt"      # TODO
+_NOIP_BIN_PATH_ROOT = "/home/derek/noip-2.1.9-1/"     # TODO
+_LOGFILE_PATH = "/home/derek/noip-update-log.txt"      # TODO
 
 def date_stamp():
     ds = "%s-%s-%s %s:%s" % (
@@ -52,8 +52,11 @@ if __name__ == "__main__":
         myip = res.read().rstrip('\r\n')
         os.chdir( _NOIP_BIN_PATH_ROOT) # replace w /path/to/noip-binary
         cmd_str = "./noip2 -c CONFIG -i %s" % (myip)
-        subprocess.check_output(cmd_str.split()) # TODO verify output
- 
+        try:
+            subprocess.check_output(cmd_str.split()) # TODO verify output
+        except:
+            pass 
+
     if not os.path.isfile( _LOGFILE_PATH):
         logFile = file( _LOGFILE_PATH, "w") # opening a non-existent file in append mode doesn't do anything
     else:
