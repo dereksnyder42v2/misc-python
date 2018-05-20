@@ -1,6 +1,6 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 
-'''
+"""
 When I installed the NoIP dynamic update client (DUC), (Ubuntu 16 LTS)
 I experienced some problems--mainly that the DUC would not run automagically.
 So anytime the server IP changed I had to run,
@@ -22,14 +22,14 @@ Derek Snyder
  2/17/2018 - replaced hackish dependencies on curl with httplib request, less platform dependent now
  4/13/2018 - refactor
  4/14/2018 - refactor and modify for use on Ubuntu
-'''
+"""
 
 import datetime
 import httplib
 import os, subprocess
 
-_NOIP_BIN_PATH_ROOT = "/home/derek/noip-2.1.9-1/"     # TODO
-_LOGFILE_PATH = "/home/derek/noip-update-log.txt"      # TODO
+_NOIP_BIN_PATH_ROOT = "/home/derek/noip-2.1.9-1/" # TODO
+_LOGFILE_PATH = "/home/derek/noip-pyduc/noip-update-log.txt" # TODO
 
 def date_stamp():
     ds = "%s-%s-%s %s:%s" % (
@@ -53,14 +53,15 @@ if __name__ == "__main__":
         os.chdir( _NOIP_BIN_PATH_ROOT) # replace w /path/to/noip-binary
         cmd_str = "./noip2 -c CONFIG -i %s" % (myip)
         try:
-            subprocess.check_output(cmd_str.split()) # TODO verify output
+            subprocess.check_output(cmd_str.split() ) # TODO verify output
         except:
             pass 
 
     if not os.path.isfile( _LOGFILE_PATH):
-        logFile = file( _LOGFILE_PATH, "w") # opening a non-existent file in append mode doesn't do anything
+        logfile = file( _LOGFILE_PATH, "w") # opening a non-existent file in append mode doesn't do anything
     else:
-        logFile = file( _LOGFILE_PATH, "a")
+        logfile = file( _LOGFILE_PATH, "a")
 
-    logFile.write(date_stamp() + "," + str(res.status) + ",\n")
-    logFile.close()
+    logfile.write(date_stamp() + "," + str(res.status) + ",\n")
+    logfile.close()
+
